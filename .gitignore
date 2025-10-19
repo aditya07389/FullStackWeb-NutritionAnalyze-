@@ -1,0 +1,22 @@
+# Dependencies
+/node_modules/
+/Backend/node_modules/
+/frontend/node_modules/
+
+# Secrets (VERY IMPORTANT)
+.env
+.env.*
+/Backend/.env
+/frontend/.env
+
+# Log files
+*.log
+npm-debug.log*
+
+# Frontend Build Output (Vite)
+/frontend/dist/
+/frontend/.vite/
+
+# OS files
+.DS_Store
+Thumbs.db
