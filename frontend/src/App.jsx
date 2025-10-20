@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 import LoginPage from './pages/Login';
 import SignupPage from './pages/Signup';
 import HomePage from './pages/Home';
+import AuthCallback from './pages/AuthCallback';
 
 // This component checks if a user is logged in.
 const ProtectedRoute = () => {
@@ -27,6 +28,7 @@ const App = () => {
 
         {/* Default route redirects to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="auth/callback" element={<AuthCallback/>} />
       </Routes>
     </Router>
   );

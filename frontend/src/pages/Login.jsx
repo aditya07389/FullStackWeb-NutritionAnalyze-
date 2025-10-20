@@ -1,3 +1,4 @@
+// frontend/src/pages/Login.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
@@ -9,17 +10,19 @@ const LoginPage = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  const BACKEND_URL = 'http://localhost:5001'; // Your backend URL and port
+
   const handleLogin = async (e) => {
     e.preventDefault();
     setError(null);
 
     try {
       const response = await axios.post(
-        'http://localhost:5001/api/auth/login', 
+        `${BACKEND_URL}/api/auth/login`,
         { loginIdentifier, password }
       );
       localStorage.setItem('token', response.data.token);
-      navigate('/home'); 
+      navigate('/home');
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data.msg || 'Login failed.');
@@ -58,10 +61,20 @@ const LoginPage = () => {
         <button type="submit" className="auth-button">
           Log In
         </button>
-        
+
         <p className="auth-link">
           No account? <Link to="/signup">Sign Up</Link>
         </p>
+
+        <hr />
+
+        {/* Google Login Button */}
+        <a
+          href={`${BACKEND_URL}/api/auth/google`}
+          className="google-login-button"
+        >
+          Sign in with Google
+        </a>
       </form>
     </div>
   );
