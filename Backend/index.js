@@ -2,6 +2,7 @@ const express = require('express');
 const cors =  require('cors');
 require('dotenv').config();
 const db = require('./models');
+const passport=require('passport');
 
 const app = express();
 
@@ -19,27 +20,28 @@ app.use((req, res, next) => {
 
 app.use(cors(corsOptions));
 
+// Temporarily disable CSP to test OAuth
+app.use((req, res, next) => {
+  // Remove any existing CSP headers
+  res.removeHeader('Content-Security-Policy');
+  next();
+});
+
 app.use((req, res, next) => {
   console.log('REQUEST GOT PAST CORS');
   next();
 });
 
 app.use(express.json());
-
-
-// app.use((err, req, res, next) => {
-//   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-//     console.error('BAD JSON:', err.message);
-//     return res.status(400).json({ msg: 'Invalid JSON payload sent.' });
-//   }
-//   next();
-// });
-
+require('./config/passport-setup');
+app.use(passport.initialize());
 app.use('/api/auth', require('./routes/authRoutes'));
 
 const PORT = process.env.PORT || 5001;
 
-db.sequelize.sync().then(() => {
+// Backend/index.js (near the bottom)
+
+db.sequelize.sync({ alter: true }).then(() => { // ✅ ADD { alter: true } HERE
     app.listen(PORT, () => console.log(`server started on port ${PORT}`));
 }).catch(err => {
     console.error('Failed to sync db: '+err.message);

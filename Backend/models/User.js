@@ -23,6 +23,11 @@ module.exports = (sequelize,DataTypes) => {
             type : DataTypes.INTEGER,
             defaultValue : 100,
         },
+        googleId: {
+            type:DataTypes.STRING,
+            allowNULL:true,
+            unique:true,
+        },
 
     });
     return User;
