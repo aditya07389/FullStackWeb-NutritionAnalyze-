@@ -24,7 +24,7 @@ const AuthCallback = () => {
       // 3. Redirect to the main part of the app
       // ===============================
       // Use replace() so the token is removed from the URL
-      window.location.replace('/'); // Redirect to homepage
+      window.location.replace('/home'); // Redirect to protected Home page
     } else {
       // ===============================
       // 4. Handle error if no token is found
