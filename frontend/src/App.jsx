@@ -6,10 +6,13 @@ import LoginPage from './pages/Login';
 import SignupPage from './pages/Signup';
 import HomePage from './pages/Home';
 import AuthCallback from './pages/AuthCallback';
+import MainLayout from './pages/MainLayout'; // <-- Import the layout
 
 // This component checks if a user is logged in.
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token');
+  // If a token exists, render the child routes (the <Outlet />).
+  // Otherwise, navigate to the login page.
   return token ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
@@ -17,18 +20,32 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Public Routes */}
+        {/* --- Public Routes (NO Navbar) --- */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/auth/callback" element={<AuthCallback/>} />
 
-        {/* Protected Routes */}
+        {/* --- Protected Routes (WITH Navbar) --- */}
+        {/* Step 1: The user must be authenticated to access this group. */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/home" element={<HomePage />} />
+          
+          {/* Step 2: If authenticated, render the MainLayout. */}
+          {/* MainLayout will display the Navbar and an <Outlet /> for its children. */}
+          <Route element={<MainLayout />}>
+
+            {/* Step 3: Render the HomePage inside the MainLayout's <Outlet /> */}
+            <Route path="/home" element={<HomePage />} />
+            
+            {/* We can add a redirect here so if a logged-in user goes to "/", they land on "/home" */}
+            <Route path="/" element={<Navigate to="/home" replace />} />
+
+          </Route>
         </Route>
 
-        {/* Default route redirects to login */}
+        {/* --- Fallback Route --- */}
+        {/* If no other route matches, redirect to login. */}
         <Route path="*" element={<Navigate to="/login" replace />} />
-        <Route path="auth/callback" element={<AuthCallback/>} />
+        
       </Routes>
     </Router>
   );
