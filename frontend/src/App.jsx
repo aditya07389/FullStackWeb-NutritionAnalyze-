@@ -7,7 +7,7 @@ import SignupPage from './pages/Signup';
 import HomePage from './pages/Home';
 import AuthCallback from './pages/AuthCallback';
 import MainLayout from './pages/MainLayout'; // <-- Import the layout
-
+import ProfilePage from './pages/Profile';
 // This component checks if a user is logged in.
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token');
@@ -35,9 +35,10 @@ const App = () => {
 
             {/* Step 3: Render the HomePage inside the MainLayout's <Outlet /> */}
             <Route path="/home" element={<HomePage />} />
+            <Route path="/profile" element={<ProfilePage/>} />
             
             {/* We can add a redirect here so if a logged-in user goes to "/", they land on "/home" */}
-            <Route path="/" element={<Navigate to="/home" replace />} />
+            <Route path="/" element={<Navigate to="/signup" replace />} />
 
           </Route>
         </Route>
