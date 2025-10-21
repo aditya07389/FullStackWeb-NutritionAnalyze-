@@ -1,16 +1,15 @@
 const express = require('express');
-const cors =  require('cors');
 require('dotenv').config();
 const db = require('./models');
 const passport=require('passport');
 
 const app = express();
 
-const corsOptions = {
-  origin: 'http://localhost:5173',
-  methods: ['GET', 'POST'], 
-  allowedHeaders: ['Content-Type', 'Authorization']
-}
+// const corsOptions = {
+//   origin: 'http://localhost:5173',
+//   methods: ['GET', 'POST'], 
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }
 app.use((req, res, next) => {
   console.log(`REQUEST RECEIVED: ${req.method} ${req.path}`);
   next(); 
@@ -18,7 +17,7 @@ app.use((req, res, next) => {
 
 
 
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 // Temporarily disable CSP to test OAuth
 app.use((req, res, next) => {
@@ -36,6 +35,7 @@ app.use(express.json());
 require('./config/passport-setup');
 app.use(passport.initialize());
 app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/profile',require('./routes/ProfileRoutes'));
 
 const PORT = process.env.PORT || 5001;
 

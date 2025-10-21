@@ -1,6 +1,8 @@
 // Backend/config/passport-setup.js
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJwt = require('passport-jwt').ExtractJwt;
 const { User, Organization, sequelize } = require('../models');
 
 passport.use(
@@ -78,6 +80,27 @@ passport.use(
         console.error('❌ Top-level error in Passport strategy:', err);
         // ✅ CRITICAL: Tell Passport a fatal error occurred
         return done(err, false);
+      }
+    }
+  )
+);
+
+// JWT Strategy for protecting routes
+passport.use(
+  new JwtStrategy(
+    {
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      secretOrKey: process.env.JWT_SECRET,
+    },
+    async (payload, done) => {
+      try {
+        const user = await User.findByPk(payload.user.id);
+        if (user) {
+          return done(null, user);
+        }
+        return done(null, false);
+      } catch (error) {
+        return done(error, false);
       }
     }
   )

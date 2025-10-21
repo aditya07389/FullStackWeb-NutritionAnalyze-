@@ -135,7 +135,7 @@ exports.googleCallback = (req, res) => {
   const token = jwt.sign(
     payload,
     process.env.JWT_SECRET,
-    { expiresIn: '100h' }
+    { expiresIn: '3h' }
   );
 
   res.redirect(`http://localhost:5173/auth/callback?token=${token}`);
