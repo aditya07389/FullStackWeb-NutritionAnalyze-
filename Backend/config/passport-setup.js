@@ -4,6 +4,8 @@ const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const { User, Organization, sequelize } = require('../models');
+const crypto = require('crypto');
+const randomPassword = crypto.randomBytes(20).toString('hex');
 
 passport.use(
   new GoogleStrategy(
@@ -56,6 +58,7 @@ passport.use(
             googleId: profile.id,
             email: userEmail,
             username: newUsername,
+            password: randomPassword,
           }, { transaction: t });
 
           // Create their default organization
@@ -66,7 +69,7 @@ passport.use(
 
           await t.commit();
           console.log('✅ New user and organization created successfully.');
-          // ✅ CRITICAL: Tell Passport the new user was created
+          newUser.isNewUser=true;
           return done(null, newUser);
           
         } catch (transactionError) {

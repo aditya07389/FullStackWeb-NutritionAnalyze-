@@ -6,7 +6,12 @@ const profileController=require('../controllers/ProfileController');
 
 const authCheck=passport.authenticate('jwt',{session:false});
 
+// Test route without auth
+router.get('/test', (req, res) => {
+  res.json({ message: 'Profile routes are working!' });
+});
+
 router.get('/me',authCheck,profileController.getProfile);
-router.put('/update',authCheck,profileController.updateProfile);
+router.post('/update',authCheck,profileController.updateProfile);
 
 module.exports=router;

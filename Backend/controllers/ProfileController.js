@@ -1,4 +1,5 @@
 const {User,Profile}=require('../models');
+const {Sequelize}=require('sequelize');
 
 //get data from the database
 exports.getProfile=async(req,res)=>{
@@ -32,29 +33,46 @@ exports.getProfile=async(req,res)=>{
 
 //updating the data 
 exports.updateProfile=async(req,res)=>{
-    const {healthConditions}=req.body;
-
     try{
-        // Find existing profile or create a new one
-        let profile=await Profile.findOne({where:{userId:req.user.id}});
+        const userId=req.user.id;
 
-        if(!profile){
-            // Create a new profile if it doesn't exist
-            profile = await Profile.create({
-                userId: req.user.id,
-                healthConditions: healthConditions || []
-            });
-        } else {
-            // Update existing profile
-            profile.healthConditions=healthConditions;
-            await profile.save();
+        if(!userId){
+            return res.status(401).json({msg:'Unauthorized, No user found'});
         }
+        const {gender,age,allergies,medicalConditions,preferences}=req.body;
 
-        res.json(profile);
+        const [profile,created]=await Profile.findOrCreate({
+           where:{userId:userId},
+           defaults:{
+            userId:userId,
+            gender,
+            age,
+            allergies,
+            medicalConditions,
+            preferences
+           } 
+        });
+
+        if(!created){
+            await profile.update({
+                gender,
+                age,
+                allergies,
+                medicalConditions,
+                preferences
+            });
+        }
+        res.status(200).json({msg:'Profile updated successfully'});
 
     }
-    catch(error){
-        console.error("Error updating profile:",error);
-        res.status(500).json({error:"Server error"});
+    catch(err)
+    {
+        if(err instanceof Sequelize.ValidationError){
+            const errors=err.errors.map(e=>({field:e.path,message:e.message}));
+            return res.status(400).json({msg:'Validation error',errors});
+        }
+
+        console.error('Error in updateProfile',err.message);
+        res.status(500).send('Server Error');
     }
 };

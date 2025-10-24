@@ -7,8 +7,9 @@ const app = express();
 
 const corsOptions = {
   origin: 'http://localhost:5173',
-  methods: ['GET', 'POST'], 
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true
 }
 app.use((req, res, next) => {
   console.log(`REQUEST RECEIVED: ${req.method} ${req.path}`);
@@ -20,11 +21,11 @@ app.use((req, res, next) => {
 app.use(cors(corsOptions));
 
 // Temporarily disable CSP to test OAuth
-app.use((req, res, next) => {
-  // Remove any existing CSP headers
-  res.removeHeader('Content-Security-Policy');
-  next();
-});
+// app.use((req, res, next) => {
+//   // Remove any existing CSP headers
+//   res.removeHeader('Content-Security-Policy');
+//   next();
+// });
 
 app.use((req, res, next) => {
   console.log('REQUEST GOT PAST CORS');

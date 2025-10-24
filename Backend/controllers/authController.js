@@ -125,20 +125,29 @@ exports.login = async (req, res) => {
   }
 };
 
-// ============================
-// GOOGLE CALLBACK FUNCTION
-// ============================
+exports.googleCallback = async (req, res) => {
+  try {
+    const user = req.user;
+    const { Profile } = require('../models');
 
+    const existingProfile = await Profile.findOne({
+      where: { userId: user.id }
+    });
 
-exports.googleCallback = (req, res) => {
-  const user = req.user;
+    const payload = { user: { id: user.id } };
+    const token = jwt.sign(
+      payload,
+      process.env.JWT_SECRET,
+      { expiresIn: '3h' }
+    );
 
-  const payload = { user: { id: user.id } };
-  const token = jwt.sign(
-    payload,
-    process.env.JWT_SECRET,
-    { expiresIn: '3h' }
-  );
-
-  res.redirect(`http://localhost:5173/auth/callback?token=${token}`);
+    if (!existingProfile) {
+      res.redirect(`http://localhost:5173/user-profile-form?token=${token}`);
+    } else {
+      res.redirect(`http://localhost:5173/auth/callback?token=${token}`);
+    }
+  } catch (error) {
+    console.error('Error in googleCallback:', error);
+    res.redirect(`http://localhost:5173/login?error=auth_failed`);
+  }
 };
