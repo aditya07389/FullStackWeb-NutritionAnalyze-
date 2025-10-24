@@ -21,10 +21,10 @@ const AuthCallback = () => {
       localStorage.setItem('token', token); 
       
       // ===============================
-      // 3. Redirect to the main part of the app
+      // 3. Redirect to home for existing users
       // ===============================
       // Use replace() so the token is removed from the URL
-      window.location.replace('/home'); // Redirect to protected Home page
+      window.location.replace('/home'); // Redirect to home page
     } else {
       // ===============================
       // 4. Handle error if no token is found

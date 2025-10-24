@@ -8,6 +8,7 @@ import HomePage from './pages/Home';
 import AuthCallback from './pages/AuthCallback';
 import MainLayout from './pages/MainLayout'; // <-- Import the layout
 import ProfilePage from './pages/Profile';
+import UserProfileForm from './pages/UserProfileForm';
 // This component checks if a user is logged in.
 const ProtectedRoute = () => {
   const token = localStorage.getItem('token');
@@ -24,6 +25,8 @@ const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/auth/callback" element={<AuthCallback/>} />
+        <Route path="/user-profile-form" element={<UserProfileForm/>}/>
+
 
         {/* --- Protected Routes (WITH Navbar) --- */}
         {/* Step 1: The user must be authenticated to access this group. */}

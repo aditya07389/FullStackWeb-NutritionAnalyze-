@@ -20,7 +20,7 @@ const SignupPage = () => {
         { username, email, password }
       );
       localStorage.setItem('token', response.data.token);
-      navigate('/home');
+      navigate('/user-profile-form');
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         setError(err.response.data.msg || 'Signup failed.');
