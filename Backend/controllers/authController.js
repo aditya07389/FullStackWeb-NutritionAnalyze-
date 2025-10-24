@@ -4,9 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { User, Organization, sequelize, Sequelize } = require('../models');
 
-// ============================
-// REGISTER FUNCTION
-// ============================
+
 exports.register = async (req, res) => {
   const { username, email, password } = req.body;
 
