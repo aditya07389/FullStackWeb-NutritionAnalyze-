@@ -128,6 +128,8 @@ exports.login = async (req, res) => {
 // ============================
 // GOOGLE CALLBACK FUNCTION
 // ============================
+
+
 exports.googleCallback = (req, res) => {
   const user = req.user;
 
