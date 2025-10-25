@@ -1,26 +1,35 @@
-import React, { useState, useEffect } from "react"; // 1. Added useEffect
+import React, { useState, useEffect } from "react";
 
 const ProfilePage = () => {
-  // 2. Updated state to be null and added loading
-  const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [userData, setUserData] = useState({ username: '', credits: 0 });
+  const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  // 3. Initialize as empty string, will be set after fetch
-  const [editedConditions, setEditedConditions] = useState("");
 
-  // 4. Added useEffect to fetch data on component load
+  const [editedGender, setEditedGender] = useState('');
+  const [editedAge, setEditedAge] = useState('');
+  const [editedAllergies, setEditedAllergies] = useState('');
+  const [editedMedicalConditions, setEditedMedicalConditions] = useState('');
+  const [editedPreferences, setEditedPreferences] = useState('');
+
+  // Helper function to sync form fields
+  const syncEditFields = (profileData) => {
+    setEditedGender(profileData?.gender || 'other');
+    setEditedAge(profileData?.age || '');
+    setEditedAllergies((profileData?.allergies || []).join(", "));
+    setEditedMedicalConditions((profileData?.medicalConditions || []).join(", "));
+    setEditedPreferences((profileData?.preferences || []).join(", "));
+  };
+
+  // Fetch user data on mount
   useEffect(() => {
     const fetchUserProfile = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
         setIsLoading(false);
-        // In a real app, you'd redirect to login
         return;
       }
-
       try {
-        // We use the proxy path, so no "http://localhost:3001"
         const response = await fetch("/api/profile/me", {
           method: "GET",
           headers: {
@@ -34,10 +43,10 @@ const ProfilePage = () => {
         }
 
         const data = await response.json();
-        
-        // 5. Set user data from the server
-        setUser(data);
-        setEditedConditions(data.healthConditions.join(", "));
+
+        setUserData({ username: data.username, credits: data.credits });
+        setProfile(data.profile || {});
+        syncEditFields(data.profile || {});
       } catch (error) {
         console.error("Error fetching profile:", error);
       } finally {
@@ -46,72 +55,174 @@ const ProfilePage = () => {
     };
 
     fetchUserProfile();
-  }, []); // The empty array [] means this runs only once on mount
+  }, []);
 
+  // Handle edit mode
   const handleEditClick = () => {
-    setIsEditing(true);
+    if (profile) {
+      syncEditFields(profile);
+      setIsEditing(true);
+    }
   };
 
-  // 6. Updated handleSaveClick to be async and call the API
+  // Handle save click
   const handleSaveClick = async () => {
     const token = localStorage.getItem("token");
-    const updatedConditions = editedConditions.split(",").map(cond => cond.trim());
+    if (!token) {
+      alert("Please log in again.");
+      return;
+    }
+
+    const updatedProfile = {
+      gender: editedGender,
+      age: editedAge ? parseInt(editedAge, 10) : null,
+      allergies: editedAllergies.split(",").map(cond => cond.trim()).filter(Boolean),
+      medicalConditions: editedMedicalConditions.split(",").map(cond => cond.trim()).filter(Boolean),
+      preferences: editedPreferences.split(",").map(cond => cond.trim()).filter(Boolean),
+    };
 
     try {
       const response = await fetch("/api/profile/update", {
-        method: "PUT",
+        method: "POST", // Use PUT for update
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ healthConditions: updatedConditions }),
+        body: JSON.stringify(updatedProfile),
       });
 
       if (!response.ok) {
         throw new Error("Failed to save data");
       }
 
-      // 7. If API save is successful, update local state
-      setUser({ ...user, healthConditions: updatedConditions });
+      const data = await response.json();
+      setProfile(data.profile);
       setIsEditing(false);
-
     } catch (error) {
       console.error("Error saving profile:", error);
       alert("Failed to save changes. Please try again.");
     }
   };
 
-  // 8. Added loading and error states for good UX
+  // Loading / error UI
   if (isLoading) {
     return <div style={styles.container}><p>Loading your profile...</p></div>;
   }
 
-  if (!user) {
+  if (!profile) {
     return <div style={styles.container}><p>Could not load profile. Please log in again.</p></div>;
   }
 
-  // 9. Your original JSX (no changes needed)
+  // Main UI
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>NutriChoice Profile</h1>
 
       <div style={styles.card}>
-        <p style={styles.label}><strong>Username:</strong> {user.username}</p>
-        <p style={styles.label}><strong>Credits:</strong> {user.credits}</p>
+        <p style={styles.label}><strong>Username:</strong> {userData.username}</p>
+        <p style={styles.label}><strong>Credits:</strong> {userData.credits}</p>
 
+        {/* --- Gender --- */}
         <div style={styles.section}>
-          <strong>Health Conditions:</strong>
+          <strong>Gender:</strong>
+          {!isEditing ? (
+            <p style={styles.text}>{profile?.gender || 'Not set'}</p>
+          ) : (
+            <select
+              style={styles.select}
+              value={editedGender}
+              onChange={(e) => setEditedGender(e.target.value)}
+            >
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other / Prefer not to say</option>
+            </select>
+          )}
+        </div>
+
+        {/* --- Age --- */}
+        <div style={styles.section}>
+          <strong>Age:</strong>
+          {!isEditing ? (
+            <p style={styles.text}>{profile?.age || 'Not set'}</p>
+          ) : (
+            <input
+              type="number"
+              style={styles.input}
+              value={editedAge}
+              onChange={(e) => setEditedAge(e.target.value)}
+              placeholder="Enter your age"
+              min="0"
+              max="120"
+            />
+          )}
+        </div>
+
+        {/* --- Medical Conditions --- */}
+        <div style={styles.section}>
+          <strong>Medical Conditions:</strong>
+          <p style={styles.smallLabel}>Separate with commas (e.g., Diabetes, Asthma)</p>
           {!isEditing ? (
             <ul style={styles.list}>
-              {user.healthConditions.map((condition, index) => (
-                <li key={index} style={styles.listItem}>{condition}</li>
-              ))}
+              {profile?.medicalConditions?.length > 0 ? (
+                profile.medicalConditions.map((condition, index) => (
+                  <li key={index} style={styles.listItem}>{condition}</li>
+                ))
+              ) : (
+                <li style={styles.listItem}>None</li>
+              )}
             </ul>
           ) : (
             <textarea
               style={styles.textArea}
-              value={editedConditions}
-              onChange={(e) => setEditedConditions(e.target.value)}
+              value={editedMedicalConditions}
+              onChange={(e) => setEditedMedicalConditions(e.target.value)}
+            />
+          )}
+        </div>
+
+        {/* --- Allergies --- */}
+        <div style={styles.section}>
+          <strong>Allergies:</strong>
+          <p style={styles.smallLabel}>Separate with commas (e.g., Peanuts, Gluten)</p>
+          {!isEditing ? (
+            <ul style={styles.list}>
+              {profile?.allergies?.length > 0 ? (
+                profile.allergies.map((item, index) => (
+                  <li key={index} style={styles.listItem}>{item}</li>
+                ))
+              ) : (
+                <li style={styles.listItem}>None</li>
+              )}
+            </ul>
+          ) : (
+            <textarea
+              style={styles.textArea}
+              value={editedAllergies}
+              onChange={(e) => setEditedAllergies(e.target.value)}
+            />
+          )}
+        </div>
+
+        {/* --- Preferences --- */}
+        <div style={styles.section}>
+          <strong>Dietary Preferences:</strong>
+          <p style={styles.smallLabel}>Separate with commas (e.g., Vegan, Low-carb)</p>
+          {!isEditing ? (
+            <ul style={styles.list}>
+              {profile?.preferences?.length > 0 ? (
+                profile.preferences.map((item, index) => (
+                  <li key={index} style={styles.listItem}>{item}</li>
+                ))
+              ) : (
+                <li style={styles.listItem}>None</li>
+              )}
+            </ul>
+          ) : (
+            <textarea
+              style={styles.textArea}
+              value={editedPreferences}
+              onChange={(e) => setEditedPreferences(e.target.value)}
             />
           )}
         </div>
@@ -119,7 +230,7 @@ const ProfilePage = () => {
         <div style={styles.buttonContainer}>
           {!isEditing ? (
             <button style={styles.editButton} onClick={handleEditClick}>
-              ✏️ Edit Health Conditions
+              ✏️ Edit Profile
             </button>
           ) : (
             <button style={styles.saveButton} onClick={handleSaveClick}>
@@ -132,7 +243,7 @@ const ProfilePage = () => {
   );
 };
 
-// Inline styles (no changes)
+// Inline styles
 const styles = {
   container: {
     fontFamily: "Arial, sans-serif",
@@ -152,26 +263,39 @@ const styles = {
     padding: "25px",
     borderRadius: "10px",
     boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-    width: "350px",
+    width: "100%",
+    maxWidth: "500px",
   },
   label: {
     fontSize: "16px",
     color: "#333",
     margin: "10px 0",
   },
+  text: {
+    fontSize: "15px",
+    color: "#555",
+    margin: "5px 0 0 0",
+  },
+  smallLabel: {
+    fontSize: "12px",
+    color: "#888",
+    margin: "2px 0 5px 0",
+  },
   section: {
-    marginTop: "10px",
+    marginTop: "15px",
     color: "#333",
   },
   list: {
     listStyleType: "circle",
     paddingLeft: "20px",
+    margin: "5px 0 0 0",
   },
   listItem: {
     marginBottom: "5px",
+    color: "#555",
   },
   buttonContainer: {
-    marginTop: "20px",
+    marginTop: "25px",
     textAlign: "center",
   },
   editButton: {
@@ -181,6 +305,7 @@ const styles = {
     padding: "10px 15px",
     borderRadius: "5px",
     cursor: "pointer",
+    fontSize: "16px",
   },
   saveButton: {
     backgroundColor: "#2ecc71",
@@ -189,15 +314,36 @@ const styles = {
     padding: "10px 15px",
     borderRadius: "5px",
     cursor: "pointer",
+    fontSize: "16px",
   },
   textArea: {
     width: "100%",
+    boxSizing: "border-box",
     height: "60px",
     borderRadius: "5px",
     border: "1px solid #ccc",
     padding: "8px",
-    marginTop: "10px",
+    marginTop: "5px",
     fontSize: "14px",
+  },
+  input: {
+    width: "100%",
+    boxSizing: "border-box",
+    borderRadius: "5px",
+    border: "1px solid #ccc",
+    padding: "8px",
+    marginTop: "5px",
+    fontSize: "14px",
+  },
+  select: {
+    width: "100%",
+    boxSizing: "border-box",
+    borderRadius: "5px",
+    border: "1px solid #ccc",
+    padding: "8px",
+    marginTop: "5px",
+    fontSize: "14px",
+    backgroundColor: "white",
   },
 };
 
