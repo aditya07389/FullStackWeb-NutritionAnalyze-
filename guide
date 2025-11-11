@@ -1,0 +1,3 @@
+In your backend terminal: npm install socket.io node-cron jsonwebtoken
+
+In your frontend terminal: npm install socket.io-client
