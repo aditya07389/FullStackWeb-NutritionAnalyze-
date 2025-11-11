@@ -11,6 +11,7 @@ db.sequelize = sequelize;
 db.User = require('./User.js')(sequelize, DataTypes);
 db.Organization = require('./Organization.js')(sequelize, DataTypes);
 db.Profile=require('./Profile.js')(sequelize,DataTypes);
+db.Notification=require('./Notification.js')(sequelize,DataTypes);
 
 
 db.User.hasOne(db.Organization,{foreignKey : 'adminID'});
@@ -23,6 +24,14 @@ db.User.hasOne(db.Profile,{
 });
 
 db.Profile.belongsTo(db.User,{
+    foreignKey:'userId'
+});
+
+db.User.hasMany(db.Notification,{
+    foreignKey:'userId',
+    onDelete:'CASCADE'
+});
+db.Notification.belongsTo(db.User,{
     foreignKey:'userId'
 });
 
